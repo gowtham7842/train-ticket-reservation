@@ -30,7 +30,7 @@ jobs:
           path: target/*.war
 
 
-  deploy-dev:
+  deploy-DEV:
     needs: build
     runs-on: ubuntu-latest
 
