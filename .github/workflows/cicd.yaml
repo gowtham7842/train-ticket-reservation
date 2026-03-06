@@ -71,7 +71,7 @@ jobs:
           curl -u "$USER:$PASS" --fail -T "$WAR_FILE" \
             "$URL/deploy?path=/train-ticket-reservation&update=true"
 
-  deploy-PRE_PROD:
+  deploy-PREPROD:
     needs: build
     runs-on: ubuntu-latest
 
@@ -81,14 +81,14 @@ jobs:
         with:
           name: war-file
 
-      - name: Deploy to PRE_PROD
+      - name: Deploy to PREPROD
         env:
-          URL: ${{ secrets.TOMCAT_URL_PRE_PROD }}
-          USER: ${{ secrets.TOMCAT_USER_PRE_PROD }}
-          PASS: ${{ secrets.TOMCAT_PASS_PRE_PROD }}
+          URL: ${{ secrets.TOMCAT_URL_PREPROD }}
+          USER: ${{ secrets.TOMCAT_USER_PREPROD }}
+          PASS: ${{ secrets.TOMCAT_PASS_PREPROD }}
         run: |
           WAR_FILE=$(ls *.war | head -n 1)
-          echo "Deploying $WAR_FILE to PRE_PROD ($URL)"
+          echo "Deploying $WAR_FILE to PREPROD ($URL)"
           curl -u "$USER:$PASS" --fail -T "$WAR_FILE" \
             "$URL/deploy?path=/train-ticket-reservation&update=true"
 
