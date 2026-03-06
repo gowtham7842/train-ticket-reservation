@@ -29,7 +29,6 @@ jobs:
           name: war-file
           path: target/*.war
 
-
   deploy-DEV:
     needs: build
     runs-on: ubuntu-latest
@@ -66,14 +65,13 @@ jobs:
           URL: ${{ secrets.TOMCAT_URL_TEST }}
           USER: ${{ secrets.TOMCAT_USER_TEST }}
           PASS: ${{ secrets.TOMCAT_PASS_TEST }}
-        run: 
-             WAR_FILE=$(ls *.war | head -n 1)
-             echo "Deploying $WAR_FILE to TEST ($URL)"
-             curl -u "$USER:$PASS" --fail -T "$WAR_FILE" \
-               "$URL/deploy?path=/train-ticket-reservation&update=true"  
+        run: |
+          WAR_FILE=$(ls *.war | head -n 1)
+          echo "Deploying $WAR_FILE to TEST ($URL)"
+          curl -u "$USER:$PASS" --fail -T "$WAR_FILE" \
+            "$URL/deploy?path=/train-ticket-reservation&update=true"
 
-  
-  deploy-PREPROD:
+  deploy-PRE_PROD:
     needs: build
     runs-on: ubuntu-latest
 
@@ -83,17 +81,16 @@ jobs:
         with:
           name: war-file
 
-      - name: Deploy to PREPROD
+      - name: Deploy to PRE_PROD
         env:
-          URL: ${{ secrets.TOMCAT_URL_PREPROD }}
-          USER: ${{ secrets.TOMCAT_USER_PREPROD }}
-          PASS: ${{ secrets.TOMCAT_PASS_PREPROD }}
+          URL: ${{ secrets.TOMCAT_URL_PRE_PROD }}
+          USER: ${{ secrets.TOMCAT_USER_PRE_PROD }}
+          PASS: ${{ secrets.TOMCAT_PASS_PRE_PROD }}
         run: |
           WAR_FILE=$(ls *.war | head -n 1)
-          echo "Deploying $WAR_FILE to PREPROD ($URL)"
+          echo "Deploying $WAR_FILE to PRE_PROD ($URL)"
           curl -u "$USER:$PASS" --fail -T "$WAR_FILE" \
-            "$URL/deploy?path=/train-ticket-reservation&update=true"  
-
+            "$URL/deploy?path=/train-ticket-reservation&update=true"
 
   deploy-PROD:
     needs: build
@@ -114,4 +111,4 @@ jobs:
           WAR_FILE=$(ls *.war | head -n 1)
           echo "Deploying $WAR_FILE to PROD ($URL)"
           curl -u "$USER:$PASS" --fail -T "$WAR_FILE" \
-            "$URL/deploy?path=/train-ticket-reservation&update=true" 
+            "$URL/deploy?path=/train-ticket-reservation&update=true"
