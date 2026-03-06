@@ -50,4 +50,3 @@ jobs:
           echo "Deploying $WAR_FILE to DEV ($URL)"
           curl -u "$USER:$PASS" --fail -T "$WAR_FILE" \
             "$URL/deploy?path=/train-ticket-reservation&update=true"
-
