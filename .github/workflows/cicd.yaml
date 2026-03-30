@@ -31,7 +31,6 @@ jobs:
         with:
           name: war-file
           path: ${{ env.WAR_FILE }}
-
       - name: SonarQube Analysis
         run: |
          mvn sonar:sonar \
