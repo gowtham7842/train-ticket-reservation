@@ -72,4 +72,4 @@ jobs:
     - name: Verify Deployment
       run: |
         kubectl get pods
-        kubectl get svc
+        kubectl get svc 
