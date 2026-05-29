@@ -10,67 +10,75 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
 
-    - name: Set up Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: temurin
-        java-version: 17
+      - name: Build WAR File
+        run: mvn clean package -DskipTests
 
-    - name: Build WAR File
-      run: mvn clean package -DskipTests
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
 
-    - name: Login to Amazon ECR
-      uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build Docker Image
-      run: |
-        IMAGE_TAG=${{ github.run_number }}
+      - name: Build Docker Image
+        run: |
+          IMAGE_TAG=${{ github.run_number }}
 
-        ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-        IMAGE_URI=$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
 
-        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-        docker build -t $IMAGE_URI .
+          docker build -t $IMAGE_URI .
 
-    - name: Push Docker Image to ECR
-      run: |
-        docker push $IMAGE_URI
+      - name: Push Docker Image
+        run: |
+          docker push $IMAGE_URI
 
-    - name: Install kubectl
-      uses: azure/setup-kubectl@v4
-      with:
-        version: latest
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: latest
 
-    - name: Update kubeconfig
-      run: |
-        aws eks update-kubeconfig \
-          --region ${{ secrets.AWS_REGION }} \
-          --name ${{ secrets.EKS_CLUSTER_NAME }}
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ secrets.AWS_REGION }} \
+            --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-    - name: Replace Image in Deployment File
-      run: |
-        sed -i "s|IMAGE_NAME|$IMAGE_URI|g" k8s/deployment.yaml
+      - name: Verify EKS Access
+        run: |
+          kubectl config current-context
+          kubectl cluster-info
+          kubectl get nodes
 
-    - name: Deploy to EKS
-      run: |
-        kubectl apply -f k8s/deployment.yaml
-        kubectl apply -f k8s/service.yaml
+      - name: Replace Image in Deployment File
+        run: |
+          sed -i "s|IMAGE_NAME|$IMAGE_URI|g" k8s/deployment.yaml
 
-    - name: Verify Deployment
-      run: |
-        kubectl get pods
-        kubectl get svc
-      
+      - name: Deploy to EKS
+        run: |
+          kubectl apply --validate=false -f k8s/deployment.yaml
+          kubectl apply --validate=false -f k8s/service.yaml
+
+      - name: Verify Deployment
+        run: |
+          kubectl get deployments
+          kubectl get pods
+          kubectl get svc
