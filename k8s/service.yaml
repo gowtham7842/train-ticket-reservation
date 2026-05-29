@@ -2,11 +2,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: myapp
-  namespace: train-ticket
 spec:
   type: LoadBalancer
   selector:
-    app: train-ticket
+    app: train-ticket-reservation
   ports:
-    - port: 80
+    - protocol: TCP
+      port: 80
       targetPort: 8080
