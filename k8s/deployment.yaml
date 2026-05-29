@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: train-ticket
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: train-ticket
+  template:
+    metadata:
+      labels:
+        app: train-ticket
+    spec:
+      containers:
+        - name: myapp
+          image: 733544353237.dkr.ecr.us-west-1.amazonaws.com/gowtham7842:1780033320
+          ports:
+            - containerPort: 8080
